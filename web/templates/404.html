@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 页面未找到</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+    .error-page {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
+        text-align: center;
+        padding: 40px;
+    }
+    .error-code {
+        font-size: 120px;
+        font-weight: bold;
+        color: #e94560;
+        line-height: 1;
+        margin-bottom: 20px;
+    }
+    .error-title {
+        font-size: 32px;
+        color: #1a1a2e;
+        margin-bottom: 15px;
+    }
+    .error-desc {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 30px;
+    }
+    .back-btn {
+        padding: 15px 40px;
+        background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 30px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+    }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🏆 世界杯赛事舆情大数据分析平台
+        </div>
+        <div class="navbar-menu">
+            <a href="/" class="nav-link">首页概览</a>
+            <a href="/compare" class="nav-link">对比分析</a>
+            <a href="/wordcloud" class="nav-link">词云展示</a>
+            <a href="/chat" class="nav-link">AI助手</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="error-page">
+            <div class="error-code">404</div>
+            <h1 class="error-title">页面未找到</h1>
+            <p class="error-desc">抱歉，您访问的页面不存在或已被移除</p>
+            <a href="/" class="back-btn">返回首页</a>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>🏆 世界杯多行业舆情热度分析平台</p>
+    </footer>
+</body>
+</html>

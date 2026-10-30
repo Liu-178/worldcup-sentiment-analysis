@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI对话助手 - 世界杯舆情分析平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+    /* 对话页面特殊样式 */
+    .chat-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .chat-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .chat-header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .chat-box {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        height: 500px;
+        overflow-y: auto;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .message.user {
+        justify-content: flex-end;
+    }
+
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .message.user .message-avatar {
+        background: #5470c6;
+        order: 2;
+    }
+
+    .message.ai .message-avatar {
+        background: #91cc75;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 15px;
+        border-radius: 15px;
+        line-height: 1.6;
+    }
+
+    .message.user .message-content {
+        background: #5470c6;
+        color: white;
+    }
+
+    .message.ai .message-content {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .input-area {
+        display: flex;
+        gap: 15px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .input-area input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    .input-area input:focus {
+        border-color: #5470c6;
+    }
+
+    .input-area button {
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #5470c6 0%, #91cc75 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .input-area button:hover {
+        transform: scale(1.05);
+    }
+
+    .quick-questions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .quick-btn {
+        padding: 10px 20px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .quick-btn:hover {
+        background: #5470c6;
+        color: white;
+    }
+
+    .typing {
+        display: none;
+        padding: 10px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .typing.active {
+        display: block;
+    }
+
+    .search-box {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 10px;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .search-results {
+        margin-top: 15px;
+        padding: 15px;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        min-height: 100px;
+    }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            世界杯赛事舆情大数据分析平台
+        </div>
+        <div class="navbar-menu">
+            <a href="/" class="nav-link">首页概览</a>
+            <a href="/compare" class="nav-link">对比分析</a>
+            <a href="/wordcloud" class="nav-link">词云展示</a>
+            <a href="/chat" class="nav-link active">AI助手</a>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="main-content">
+        <div class="chat-container">
+            <!-- 页面标题 -->
+            <div class="chat-header">
+                <h1>🤖 AI对话助手</h1>
+                <p>世界杯知识问答 · 数据解读 · 智能搜索</p>
+            </div>
+
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索世界杯相关信息..." onkeypress="handleSearch(event)">
+            </div>
+
+            <!-- 快捷问题 -->
+            <div class="quick-questions">
+                <button class="quick-btn" onclick="askQuestion('2022卡塔尔世界杯冠军是谁？')">2022冠军是谁</button>
+                <button class="quick-btn" onclick="askQuestion('2026世界杯在哪里举办？')">2026举办地</button>
+                <button class="quick-btn" onclick="askQuestion('世界杯体彩行业舆情分析')">体彩舆情分析</button>
+                <button class="quick-btn" onclick="askQuestion('梅西世界杯成就')">梅西世界杯成就</button>
+                <button class="quick-btn" onclick="askQuestion('世界杯对餐饮行业的影响')">餐饮行业影响</button>
+            </div>
+
+            <!-- 对话框 -->
+            <div class="chat-box" id="chat-box">
+                <div class="message ai">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        你好！我是世界杯舆情分析AI助手。<br><br>
+                        我可以帮你：<br>
+                        • 回答世界杯相关问题<br>
+                        • 解读舆情分析数据<br>
+                        • 搜索赛事信息<br><br>
+                        请输入你的问题，或点击上方快捷按钮开始对话！
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="输入你的问题..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">发送</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <p>世界杯多行业舆情热度分析平台 | AI对话助手</p>
+        <p> Powered by SiliconFlow API</p>
+    </footer>
+
+    <script>
+    // 对话历史
+    let chatHistory = [];
+
+    // 发送消息
+    function sendMessage() {
+        const input = document.getElementById('user-input');
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        // 显示用户消息
+        addMessage('user', message);
+        input.value = '';
+
+        // 显示等待提示
+        showTyping();
+
+        // 发送到API
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                history: chatHistory
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideTyping();
+
+            if (data.success) {
+                // 显示AI回复
+                addMessage('ai', data.reply);
+
+                // 保存历史
+                chatHistory.push({role: 'user', content: message});
+                chatHistory.push({role: 'assistant', content: data.reply});
+            } else {
+                addMessage('ai', '抱歉，发生错误：' + data.error);
+            }
+        })
+        .catch(error => {
+            hideTyping();
+            addMessage('ai', '抱歉，网络错误，请稍后重试');
+        });
+    }
+
+    // 添加消息到对话框
+    function addMessage(role, content) {
+        const chatBox = document.getElementById('chat-box');
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + role;
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.textContent = role === 'user' ? '👤' : '🤖';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = content;
+
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+
+        chatBox.appendChild(messageDiv);
+
+        // 滚动到底部
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // 显示等待提示
+    function showTyping() {
+        const chatBox = document.getElementById('chat-box');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing active';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.textContent = '🤖 AI正在思考...';
+        chatBox.appendChild(typingDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // 隐藏等待提示
+    function hideTyping() {
+        const typing = document.getElementById('typing-indicator');
+        if (typing) {
+            typing.remove();
+        }
+    }
+
+    // 键盘事件
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    // 快捷问题
+    function askQuestion(question) {
+        document.getElementById('user-input').value = question;
+        sendMessage();
+    }
+
+    // 搜索功能
+    function handleSearch(event) {
+        if (event.key === 'Enter') {
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                document.getElementById('user-input').value = '搜索：' + query;
+                sendMessage();
+            }
+        }
+    }
+
+    // 页面加载完成
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('user-input').focus();
+    });
+    </script>
+</body>
+</html>

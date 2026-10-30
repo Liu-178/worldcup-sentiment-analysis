@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对比分析 - 世界杯赛事舆情大数据分析平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🏆 世界杯赛事舆情大数据分析平台
+        </div>
+        <div class="navbar-menu">
+            <a href="/" class="nav-link">首页概览</a>
+            <a href="/compare" class="nav-link active">对比分析</a>
+            <a href="/wordcloud" class="nav-link">词云展示</a>
+            <a href="/chat" class="nav-link">AI助手</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1>📊 行业热度对比分析</h1>
+            <p class="subtitle">2022卡塔尔世界杯 vs 2026美加墨世界杯 | 五大行业舆情深度对比</p>
+        </div>
+
+        <!-- 对比概览卡片 -->
+        <div class="stats-cards">
+            <div class="card card-2022">
+                <div class="card-icon">🏆</div>
+                <div class="card-title">2022卡塔尔世界杯</div>
+                <div class="card-value" id="total-2022">--</div>
+                <div class="card-unit">条新闻</div>
+            </div>
+            <div class="card card-2026">
+                <div class="card-icon">⚽</div>
+                <div class="card-title">2026美加墨世界杯</div>
+                <div class="card-value" id="total-2026">--</div>
+                <div class="card-unit">条新闻</div>
+            </div>
+            <div class="card card-info">
+                <div class="card-icon">🔥</div>
+                <div class="card-title">最热门行业</div>
+                <div class="card-value" id="hot-industry">--</div>
+                <div class="card-unit">行业</div>
+            </div>
+            <div class="card card-highlight">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">热度增幅榜首</div>
+                <div class="card-value" id="top-growth-industry">旅游</div>
+                <div class="card-unit">两届涨幅最突出行业</div>
+            </div>
+        </div>
+
+        <!-- 两届对比柱状图 -->
+        <div class="chart-section">
+            <h2 class="section-title">📊 各行业舆情占比对比</h2>
+            <div class="chart-container">
+                <div id="bar-chart" class="chart"></div>
+            </div>
+        </div>
+
+        <!-- 双列图表 -->
+        <div class="charts-row">
+            <!-- 2022饼图 -->
+            <div class="chart-half">
+                <h2 class="section-title">🥧 2022卡塔尔世界杯行业分布</h2>
+                <div class="chart-container">
+                    <div id="pie-2022" class="chart"></div>
+                </div>
+            </div>
+            <!-- 2026饼图 -->
+            <div class="chart-half">
+                <h2 class="section-title">🥧 2026美加墨世界杯行业分布</h2>
+                <div class="chart-container">
+                    <div id="pie-2026" class="chart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 占比对比折线图 -->
+        <div class="chart-section">
+            <h2 class="section-title">📈 各行业热度占比对比</h2>
+            <div class="chart-container">
+                <div id="line-chart" class="chart"></div>
+            </div>
+        </div>
+
+
+        <!-- 详细对比数据表格 -->
+        <div class="table-section">
+            <h2 class="section-title">📋 详细对比数据表</h2>
+            <div class="table-container">
+                <table class="comparison-table" id="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>行业</th>
+                            <th>2022数量</th>
+                            <th>2022占比</th>
+                            <th>2026数量</th>
+                            <th>2026占比</th>
+                            <th>数量变化</th>
+                            <th>趋势</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="loading">数据加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 两届世界杯舆情情绪分布对比 -->
+        <div class="chart-section">
+            <h2 class="section-title">📊 两届世界杯舆情情绪分布对比</h2>
+            <div class="sentiment-cards-container">
+                <!-- 正面情绪卡片 -->
+                <div class="sentiment-card card-positive">
+                    <div class="card-emotion-title">正面</div>
+                    <div class="card-data-row">
+                        <span class="year-label">2022卡塔尔</span>
+                        <span class="percent-value">21.8%</span>
+                    </div>
+                    <div class="card-data-row">
+                        <span class="year-label">2026美加墨</span>
+                        <span class="percent-value">15.9%</span>
+                    </div>
+                    <div class="card-change-row">
+                        <span class="change-arrow change-down">↓ -5.9%</span>
+                    </div>
+                </div>
+                <!-- 中性情绪卡片 -->
+                <div class="sentiment-card card-neutral">
+                    <div class="card-emotion-title">中性</div>
+                    <div class="card-data-row">
+                        <span class="year-label">2022卡塔尔</span>
+                        <span class="percent-value">75.2%</span>
+                    </div>
+                    <div class="card-data-row">
+                        <span class="year-label">2026美加墨</span>
+                        <span class="percent-value">77.8%</span>
+                    </div>
+                    <div class="card-change-row">
+                        <span class="change-arrow change-up">↑ +2.6%</span>
+                    </div>
+                </div>
+                <!-- 负面情绪卡片 -->
+                <div class="sentiment-card card-negative">
+                    <div class="card-emotion-title">负面</div>
+                    <div class="card-data-row">
+                        <span class="year-label">2022卡塔尔</span>
+                        <span class="percent-value">3.0%</span>
+                    </div>
+                    <div class="card-data-row">
+                        <span class="year-label">2026美加墨</span>
+                        <span class="percent-value">6.2%</span>
+                    </div>
+                    <div class="card-change-row">
+                        <span class="change-arrow change-up">↑ +3.2%</span>
+                    </div>
+                    <div class="card-note">💡 波动成因：2026负面小幅上涨来源于暑期出行拥堵、旺季溢价</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- [新增] 分行业情绪分布柱状图 -->
+        <div class="chart-section">
+            <h2 class="section-title">📊 五大行业情绪分布对比</h2>
+            <p class="chart-desc">细分分析：负面舆情主要集中在旅游、餐饮板块，体彩、零售舆情更加平稳</p>
+            <div class="chart-tabs">
+                <button class="tab-btn btn-primary active" onclick="switchSentimentYear('2022', this)">2022卡塔尔</button>
+                <button class="tab-btn btn-primary" onclick="switchSentimentYear('2026', this)">2026美加墨</button>
+            </div>
+            <div class="chart-container">
+                <div id="sentiment-bar-chart" class="chart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <p>🏆 世界杯多行业舆情热度分析平台 | 计算机课程期末大作业</p>
+        <p>技术栈: Python + Flask + ECharts + pandas + jieba + wordcloud</p>
+    </footer>
+
+    <!-- JavaScript脚本 -->
+    <script>
+
+    // 全局变量：情绪数据
+    var sentimentData = null;
+    var currentSentimentYear = '2022';
+
+    // 页面初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('页面加载完成，开始获取数据...');
+        loadComparisonData();
+        loadIndustrySentiment();  // [新增] 加载分行业情绪数据
+    });
+
+    // 加载对比数据
+    function loadComparisonData() {
+        fetch('/api/industry_comparison')
+            .then(response => response.json())
+            .then(data => {
+                console.log('对比数据:', data);
+
+                // 检查是否返回错误
+                if (data.error) {
+                    console.warn('对比数据接口返回错误:', data.error);
+                    return;
+                }
+
+                // 更新统计卡片
+                updateStatsCards(data);
+
+                // 绘制图表
+                drawBarChart(data);
+                drawPieChart2022(data);
+                drawPieChart2026(data);
+                drawLineChart(data);
+
+                // 更新表格
+                updateTable(data);
+            })
+            .catch(error => {
+                console.error('加载对比数据失败:', error);
+            });
+    }
+
+
+    // 更新统计卡片
+    function updateStatsCards(data) {
+        if (!data || data.length === 0) return;
+
+        var total2022 = 0;
+        var total2026 = 0;
+        var maxTotal = 0;
+        var hotIndustry = '';
+
+        // 用于计算热度增幅
+        var maxGrowth = -999;
+        var topGrowthIndustry = '';
+
+        data.forEach(function(item) {
+            total2022 += item.count_2022 || 0;
+            total2026 += item.count_2026 || 0;
+
+            // 找数量最多的行业（最热门行业）
+            var itemTotal = (item.count_2022 || 0) + (item.count_2026 || 0);
+            if (itemTotal > maxTotal) {
+                maxTotal = itemTotal;
+                hotIndustry = item.industry || '';
+            }
+
+            // 计算热度占比增幅（2026占比 - 2022占比）
+            var growth = (item.percent_2026 || 0) - (item.percent_2022 || 0);
+            if (growth > maxGrowth) {
+                maxGrowth = growth;
+                topGrowthIndustry = item.industry || '';
+            }
+        });
+
+        document.getElementById('total-2022').textContent = total2022;
+        document.getElementById('total-2026').textContent = total2026;
+        document.getElementById('hot-industry').textContent = hotIndustry || '--';
+        document.getElementById('top-growth-industry').textContent = topGrowthIndustry || '--';
+    }
+
+
+    // 绘制柱状图
+    // [优化] 图例文字加粗，小标题保留「采用占比对比，消除总量差异带来的视觉干扰」说明
+    function drawBarChart(data) {
+        if (!data || data.length === 0) return;
+
+        var chart = echarts.init(document.getElementById('bar-chart'));
+
+        var industries = [];
+        var percent2022 = [];
+        var percent2026 = [];
+
+        data.forEach(function(item) {
+            industries.push(item.industry);
+            percent2022.push(item.percent_2022 || 0);
+            percent2026.push(item.percent_2026 || 0);
+        });
+
+        var option = {
+            title: {
+                text: '两届世界杯各行业舆情占比对比',
+                subtext: '采用占比对比，消除总量差异带来的视觉干扰',  // [优化] 保留说明，答辩凸显严谨性
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 18,
+                    fontWeight: 'bold'
+                },
+                subtextStyle: {
+                    fontSize: 13,
+                    color: '#666'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                formatter: function(params) {
+                    var result = params[0].axisValue + '<br/>';
+                    params.forEach(function(item) {
+                        result += item.marker + item.seriesName + ': ' + item.value + '%<br/>';
+                    });
+                    return result;
+                }
+            },
+            legend: {
+                data: ['2022卡塔尔', '2026美加墨'],
+                top: 60,
+                textStyle: {
+                    fontSize: 15,
+                    fontWeight: 'bold'  // [优化] 图例文字加粗
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '8%',
+                top: '28%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: industries,
+                axisLabel: {
+                    fontSize: 14
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '占比（%）',
+                nameTextStyle: {
+                    fontSize: 14
+                },
+                max: 30,
+                axisLabel: {
+                    formatter: '{value}%'
+                }
+            },
+            series: [
+                {
+                    name: '2022卡塔尔',
+                    type: 'bar',
+                    data: percent2022,
+                    itemStyle: {
+                        color: '#5470c6',
+                        borderRadius: [6, 6, 0, 0]
+                    },
+                    barWidth: '30%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 12,
+                        formatter: '{c}%'
+                    }
+                },
+                {
+                    name: '2026美加墨',
+                    type: 'bar',
+                    data: percent2026,
+                    itemStyle: {
+                        color: '#91cc75',
+                        borderRadius: [6, 6, 0, 0]
+                    },
+                    barWidth: '30%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 12,
+                        formatter: '{c}%'
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 绘制2022饼图
+    // [优化] 统一五大行业固定配色，微调图例排版，避免遮挡饼块
+    function drawPieChart2022(data) {
+        if (!data || data.length === 0) return;
+
+        var chart = echarts.init(document.getElementById('pie-2022'));
+
+        // 五大行业固定配色（使用ECharts默认专业配色方案）
+        // 财经-蓝、餐饮-绿、零售-橙黄、旅游-红、体彩-青
+        var industryColors = {
+            '财经': '#5470c6',    // 蓝色
+            '餐饮': '#91cc75',    // 绿色
+            '零售': '#fac858',    // 橙黄色
+            '旅游': '#ee6666',    // 红色
+            '体彩': '#73c0de'     // 青色
+        };
+
+        var pieData = data.map(function(item) {
+            return {
+                name: item.industry,
+                value: item.count_2022 || 0,
+                itemStyle: {
+                    color: industryColors[item.industry] || '#999999'
+                }
+            };
+        });
+
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c}条 ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                top: 'center',
+                itemGap: 15,  // [优化] 图例间距增大，避免遮挡饼块
+                textStyle: {
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                }
+            },
+            series: [
+                {
+                    name: '行业分布',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['60%', '50%'],  // [优化] 饼块位置微调，避免与图例重叠
+                    itemStyle: {
+                        borderRadius: 8,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}\n{d}%',
+                        fontSize: 14  // 标注字体略微放大
+                    },
+                    emphasis: {
+                        label: {
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    data: pieData
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 绘制2026饼图
+    // [优化] 统一五大行业固定配色，微调图例排版，避免遮挡饼块
+    function drawPieChart2026(data) {
+        if (!data || data.length === 0) return;
+
+        var chart = echarts.init(document.getElementById('pie-2026'));
+
+        // 五大行业固定配色（使用ECharts默认专业配色方案）
+        // 财经-蓝、餐饮-绿、零售-橙黄、旅游-红、体彩-青
+        var industryColors = {
+            '财经': '#5470c6',    // 蓝色
+            '餐饮': '#91cc75',    // 绿色
+            '零售': '#fac858',    // 橙黄色
+            '旅游': '#ee6666',    // 红色
+            '体彩': '#73c0de'     // 青色
+        };
+
+        var pieData = data.map(function(item) {
+            return {
+                name: item.industry,
+                value: item.count_2026 || 0,
+                itemStyle: {
+                    color: industryColors[item.industry] || '#999999'
+                }
+            };
+        });
+
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c}条 ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                top: 'center',
+                itemGap: 15,  // [优化] 图例间距增大，避免遮挡饼块
+                textStyle: {
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                }
+            },
+            series: [
+                {
+                    name: '行业分布',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['60%', '50%'],  // [优化] 饼块位置微调，避免与图例重叠
+                    itemStyle: {
+                        borderRadius: 8,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}\n{d}%',
+                        fontSize: 14  // 标注字体略微放大
+                    },
+                    emphasis: {
+                        label: {
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    data: pieData
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 绘制占比折线图
+    // ============================================
+    // 绘制正统子弹图 - 各行业热度占比对比
+    // ============================================
+    // 核心设计：
+    // - 每行一条横向轨道，底层浅蓝宽条(2022) + 垂直居中嵌套绿色窄条(2026)
+    // - 两层色块纵向重叠，上层窄条完全嵌入底层宽条内部
+    // - [优化] 固定排序规则：按2026占比从高到低排列（餐饮→旅游→体彩→零售→财经）
+    // ============================================
+    function drawLineChart(data) {
+        if (!data || data.length === 0) return;
+
+        var chart = echarts.init(document.getElementById('line-chart'));
+
+        // Y轴行业顺序：按2026占比从高到低排列
+        var industriesSorted = ['餐饮', '旅游', '体彩', '零售', '股市'];
+
+        // 提取数据
+        var dataList = [];
+        industriesSorted.forEach(function(industry, idx) {
+            var item = data.find(function(d) { return d.industry === industry; });
+            dataList.push({
+                industry: industry,
+                val2022: item ? (item.percent_2022 || 0) : 0,
+                val2026: item ? (item.percent_2026 || 0) : 0
+            });
+        });
+
+        var option = {
+            title: {
+                text: '各行业热度占比对比',
+                left: 'center',
+                top: 10,
+                textStyle: { fontSize: 16, fontWeight: 'bold' }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    var d = dataList[params.dataIndex];
+                    return d.industry + '<br/>2022卡塔尔: ' + d.val2022 + '%<br/>2026美加墨: ' + d.val2026 + '%';
+                }
+            },
+            legend: {
+                data: ['2022卡塔尔', '2026美加墨'],
+                top: 40,
+                left: 'center',
+                itemWidth: 20,
+                itemHeight: 12,
+                textStyle: { fontSize: 13 }
+            },
+            grid: {
+                left: '12%',
+                right: '12%',
+                bottom: '18%',
+                top: '30%'
+            },
+            xAxis: {
+                type: 'value',
+                name: '占比（%）',
+                nameTextStyle: { fontSize: 13 },
+                axisLabel: { formatter: '{value}%', fontSize: 12 },
+                splitLine: { show: true, lineStyle: { type: 'dashed', color: '#e8e8e8' } },
+                axisLine: { lineStyle: { color: '#ccc' } },
+                axisTick: { show: false },
+                max: 30
+            },
+            yAxis: {
+                type: 'category',
+                data: industriesSorted,  // [优化] 使用按2026占比排序的行业列表
+                axisLabel: { fontSize: 13, fontWeight: 'bold', margin: 15 },
+                axisLine: { lineStyle: { color: '#ccc' } },
+                axisTick: { show: false },
+                splitLine: { show: false }
+            },
+            series: [
+                // 2022卡塔尔（蓝色）
+                {
+                    name: '2022卡塔尔',
+                    type: 'bar',
+                    data: dataList.map(function(d) { return d.val2022; }),
+                    itemStyle: {
+                        color: '#5470c6',
+                        borderRadius: [0, 6, 6, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}%',
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        color: '#5470c6'
+                    },
+                    barGap: '10%'
+                },
+                // 2026美加墨（绿色）
+                {
+                    name: '2026美加墨',
+                    type: 'bar',
+                    data: dataList.map(function(d) { return d.val2026; }),
+                    itemStyle: {
+                        color: '#91cc75',
+                        borderRadius: [0, 6, 6, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}%',
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        color: '#91cc75'
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() { chart.resize(); });
+    }
+
+    // 更新表格
+    // [优化] 细化趋势列文案，区分不同行业的上涨特征
+    function updateTable(data) {
+        if (!data || data.length === 0) return;
+
+        // 行业趋势文案映射
+        var trendTextMap = {
+            '餐饮': '📈 占比显著上行',
+            '旅游': '📈 占比显著上行',
+            '体彩': '📊 总量上涨、相对占比平稳',
+            '零售': '📊 总量上涨、相对占比平稳',
+            '财经': '📉 总量上涨、占比回落'
+        };
+
+        var trendClassMap = {
+            '餐饮': 'trend-up-strong',
+            '旅游': 'trend-up-strong',
+            '体彩': 'trend-stable',
+            '零售': 'trend-stable',
+            '财经': 'trend-down'
+        };
+
+        var tbody = '';
+
+        data.forEach(function(item) {
+            var count2022 = item.count_2022 || 0;
+            var count2026 = item.count_2026 || 0;
+            var countChange = count2026 - count2022;
+
+            var industry = item.industry || '--';
+            var trendIcon = trendTextMap[industry] || '📈 上升';
+            var trendClass = trendClassMap[industry] || 'trend-up';
+
+            var changeSymbol = countChange > 0 ? '+' : '';
+
+            tbody += '<tr>';
+            tbody += '<td><strong>' + industry + '</strong></td>';
+            tbody += '<td>' + count2022 + '</td>';
+            tbody += '<td>' + (item.percent_2022 || 0) + '%</td>';
+            tbody += '<td>' + count2026 + '</td>';
+            tbody += '<td>' + (item.percent_2026 || 0) + '%</td>';
+            tbody += '<td class="' + (countChange >= 0 ? 'text-green' : 'text-red') + '">' + changeSymbol + countChange + '</td>';
+            tbody += '<td class="' + trendClass + '">' + trendIcon + '</td>';
+            tbody += '</tr>';
+        });
+
+        document.getElementById('comparison-table').querySelector('tbody').innerHTML = tbody;
+    }
+
+    // ============================================
+    // [新增] 分行业情绪分布柱状图
+    // ============================================
+
+    // 加载分行业情绪数据
+    function loadIndustrySentiment() {
+        fetch('/api/industry_sentiment')
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.industries) {
+                    sentimentData = data;
+                    drawSentimentBarChart('2022');
+                }
+            })
+            .catch(error => {
+                console.error('加载情绪数据失败:', error);
+            });
+    }
+
+    // 切换年份
+    function switchSentimentYear(year, btnElement) {
+        currentSentimentYear = year;
+
+        // 更新按钮状态
+        var buttons = document.querySelectorAll('.chart-section:nth-of-type(5) .chart-tabs .tab-btn');
+        buttons.forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        // 绘制图表
+        drawSentimentBarChart(year);
+    }
+
+    // 绘制分行业情绪柱状图
+    function drawSentimentBarChart(year) {
+        if (!sentimentData) return;
+
+        var chart = echarts.init(document.getElementById('sentiment-bar-chart'));
+
+        var industries = sentimentData.industries;
+        var yearData = year === '2022' ? sentimentData.data_2022 : sentimentData.data_2026;
+
+        var positiveData = yearData.map(function(d) { return d.positive_percent; });
+        var neutralData = yearData.map(function(d) { return d.neutral_percent; });
+        var negativeData = yearData.map(function(d) { return d.negative_percent; });
+
+        var option = {
+            title: {
+                text: year + (year === '2022' ? '卡塔尔' : '美加墨') + '世界杯 各行业情绪分布',
+                subtext: '细化分析：负面舆情主要集中在旅游、餐饮板块，体彩、零售舆情更加平稳',
+                left: 'center',
+                top: 5,
+                textStyle: {
+                    fontSize: 17,
+                    fontWeight: 'bold'
+                },
+                subtextStyle: {
+                    fontSize: 12,
+                    color: '#888'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                formatter: function(params) {
+                    var result = '<strong>' + params[0].axisValue + '行业</strong><br/>';
+                    params.forEach(function(item) {
+                        result += item.marker + item.seriesName + ': <strong>' + item.value + '%</strong><br/>';
+                    });
+                    return result;
+                }
+            },
+            legend: {
+                data: ['正面', '中性', '负面'],
+                top: 45,
+                left: 'center',
+                textStyle: {
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                top: '25%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: industries,
+                axisLabel: {
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '占比（%）',
+                nameTextStyle: {
+                    fontSize: 12
+                },
+                max: 100,
+                axisLabel: {
+                    formatter: '{value}%'
+                }
+            },
+            series: [
+                {
+                    name: '正面',
+                    type: 'bar',
+                    data: positiveData,
+                    itemStyle: {
+                        color: '#91cc75',
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    barWidth: '25%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 10,
+                        formatter: '{c}%'
+                    }
+                },
+                {
+                    name: '中性',
+                    type: 'bar',
+                    data: neutralData,
+                    itemStyle: {
+                        color: '#5470c6',
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    barWidth: '25%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 10,
+                        formatter: '{c}%'
+                    }
+                },
+                {
+                    name: '负面',
+                    type: 'bar',
+                    data: negativeData,
+                    itemStyle: {
+                        color: '#ee6666',
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    barWidth: '25%',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 10,
+                        formatter: '{c}%'
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+    </script>
+
+    <style>
+    /* 表格特殊样式 */
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .comparison-table th,
+    .comparison-table td {
+        padding: 15px;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+    }
+    .comparison-table th {
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        color: #fff;
+        font-size: 14px;
+    }
+    .comparison-table tbody tr:hover {
+        background: #f5f5f5;
+    }
+    .text-green {
+        color: #91cc75;
+        font-weight: bold;
+    }
+    .text-red {
+        color: #ee6666;
+        font-weight: bold;
+    }
+    /* [优化] 细化趋势列样式 */
+    .trend-up {
+        color: #91cc75;
+    }
+    .trend-up-strong {
+        color: #67c23a;
+        font-weight: bold;
+    }
+    .trend-down {
+        color: #ee6666;
+        font-weight: bold;
+    }
+    .trend-stable {
+        color: #909399;
+    }
+    .no-data {
+        text-align: center;
+        color: #999;
+        padding: 60px 20px;
+        font-size: 16px;
+        background: #f5f5f5;
+        border-radius: 8px;
+    }
+    .error {
+        text-align: center;
+        color: #ee6666;
+        padding: 60px 20px;
+        font-size: 16px;
+    }
+    /* 行业热度增幅卡片样式 */
+    .card-highlight {
+        border-top: 5px solid #73c0de;
+    }
+    .card-highlight .card-icon {
+        color: #5da5c4;
+    }
+    .card-highlight .card-value {
+        color: #1a1a2e;
+        font-size: 38px;
+    }
+
+    /* [新增] 图表描述样式 */
+    .chart-desc {
+        text-align: center;
+        color: #666;
+        font-size: 13px;
+        margin-bottom: 15px;
+        padding: 8px 15px;
+        background: #f8f9fa;
+        border-radius: 20px;
+        display: inline-block;
+        margin-left: 50%;
+        transform: translateX(-50%);
+    }
+
+    /* ============================================
+       情绪分布对比三卡片样式
+       ============================================ */
+
+    /* 三卡片横向容器 */
+    .sentiment-cards-container {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        gap: 30px;
+        padding: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    /* 单张情绪卡片基础样式 */
+    .sentiment-card {
+        flex: 1;
+        min-width: 220px;
+        max-width: 300px;
+        border-radius: 16px;
+        padding: 28px 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: center;
+    }
+
+    .sentiment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    /* 情绪名称标题 */
+    .card-emotion-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        letter-spacing: 2px;
+    }
+
+    /* 年份与百分比数据行 */
+    .card-data-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card-data-row:last-of-type {
+        border-bottom: none;
+        margin-bottom: 20px;
+    }
+
+    .year-label {
+        font-size: 14px;
+        color: #555;
+    }
+
+    .percent-value {
+        font-size: 22px;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+
+    /* 底部变动幅度行 */
+    .card-change-row {
+        padding-top: 16px;
+        margin-top: 16px;
+        border-top: 2px dashed rgba(0, 0, 0, 0.1);
+    }
+
+    .change-arrow {
+        font-size: 18px;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* 波动成因备注样式 */
+    .card-note {
+        font-size: 11px;
+        color: #888;
+        margin-top: 12px;
+        padding-top: 8px;
+        border-top: 1px dashed rgba(0, 0, 0, 0.08);
+        line-height: 1.4;
+    }
+
+    /* -------- 正面情绪卡片：浅绿底色 -------- */
+    .card-positive {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border: 2px solid #a5d6a7;
+    }
+
+    .card-positive .card-emotion-title {
+        color: #2e7d32;
+    }
+
+    .card-positive .percent-value {
+        color: #388e3c;
+    }
+
+    .card-positive .change-arrow {
+        color: #d32f2f; /* 下降用红色 */
+    }
+
+    .card-positive .change-arrow.change-up {
+        color: #2e7d32; /* 上升用绿色 */
+    }
+
+    /* -------- 中性情绪卡片：浅蓝底色 -------- */
+    .card-neutral {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 2px solid #90caf9;
+    }
+
+    .card-neutral .card-emotion-title {
+        color: #1565c0;
+    }
+
+    .card-neutral .percent-value {
+        color: #1976d2;
+    }
+
+    .card-neutral .change-arrow {
+        color: #1976d2;
+    }
+
+    /* -------- 负面情绪卡片：浅灰底色 -------- */
+    .card-negative {
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+        border: 2px solid #bdbdbd;
+    }
+
+    .card-negative .card-emotion-title {
+        color: #616161;
+    }
+
+    .card-negative .percent-value {
+        color: #424242;
+    }
+
+    .card-negative .change-arrow {
+        color: #d32f2f; /* 负面增加显示红色 */
+    }
+
+    .card-negative .change-arrow.change-down {
+        color: #388e3c; /* 负面减少显示绿色 */
+    }
+
+    /* 响应式设计 - 移动端适配 */
+    @media (max-width: 768px) {
+        .sentiment-cards-container {
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .sentiment-card {
+            width: 100%;
+            max-width: 320px;
+        }
+    }
+    </style>
+</body>
+</html>

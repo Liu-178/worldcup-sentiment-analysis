@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界杯赛事舆情大数据分析平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🏆 世界杯赛事舆情大数据分析平台
+        </div>
+        <div class="navbar-menu">
+            <a href="/" class="nav-link active">首页概览</a>
+            <a href="/compare" class="nav-link">对比分析</a>
+            <a href="/wordcloud" class="nav-link">词云展示</a>
+            <a href="/chat" class="nav-link">AI助手</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1>🏆 世界杯赛事舆情大数据分析平台</h1>
+            <p class="subtitle">2022卡塔尔世界杯 vs 2026美加墨世界杯 | 五大行业舆情热度对比分析</p>
+        </div>
+
+        <!-- 数据概览卡片 -->
+        <div class="stats-cards">
+            <div class="card card-primary">
+                <div class="card-icon">📊</div>
+                <div class="card-title">总新闻数量</div>
+                <div class="card-value" id="total-count">--</div>
+                <div class="card-unit">条</div>
+            </div>
+            <div class="card card-2022">
+                <div class="card-icon">🏆</div>
+                <div class="card-title">2022卡塔尔世界杯</div>
+                <div class="card-value" id="count-2022">--</div>
+                <div class="card-unit">条</div>
+            </div>
+            <div class="card card-2026">
+                <div class="card-icon">⚽</div>
+                <div class="card-title">2026美加墨世界杯</div>
+                <div class="card-value" id="count-2026">--</div>
+                <div class="card-unit">条</div>
+            </div>
+            <div class="card card-info">
+                <div class="card-icon">📈</div>
+                <div class="card-title">行业覆盖</div>
+                <div class="card-value" id="industry-count">--</div>
+                <div class="card-unit">个行业</div>
+            </div>
+        </div>
+
+        <!-- 行业分布图表区域 -->
+        <div class="charts-row">
+            <!-- 行业分布饼图 -->
+            <div class="chart-section chart-half">
+                <h2 class="section-title">📊 各行业新闻分布</h2>
+                <div class="chart-container">
+                    <div id="pie-chart" class="chart"></div>
+                </div>
+            </div>
+
+            <!-- 两届对比柱状图 -->
+            <div class="chart-section chart-half">
+                <h2 class="section-title">📈 两届世界杯行业热度对比</h2>
+                <div class="chart-container">
+                    <div id="bar-chart" class="chart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 年份对比详细图表 -->
+        <div class="chart-section">
+            <h2 class="section-title">📉 两届世界杯热度占比对比</h2>
+            <div class="chart-container">
+                <div id="comparison-chart" class="chart"></div>
+            </div>
+        </div>
+
+
+        <!-- 词云展示模块 -->
+        <div class="wordcloud-section">
+            <h2 class="section-title">☁️ 高频关键词词云</h2>
+            <div class="wordcloud-tabs">
+                <button class="tab-btn active" onclick="switchWordcloud('2022', this)">2022卡塔尔</button>
+                <button class="tab-btn" onclick="switchWordcloud('2026', this)">2026美加墨</button>
+                <button class="tab-btn" onclick="switchWordcloud('all', this)">总览</button>
+            </div>
+            <div class="wordcloud-container">
+                <img id="wordcloud-image" src="{{ url_for('static', filename='images/wordcloud_2022.png') }}" alt="词云图" onerror="this.parentElement.innerHTML='<div class=\'no-data\'>词云图片生成中，请稍后刷新页面</div>'">
+            </div>
+        </div>
+
+        <!-- 高频词表格 -->
+        <div class="charts-row">
+            <div class="table-section table-half">
+                <h2 class="section-title">📝 2022高频词 TOP30</h2>
+                <div class="freq-table-container" id="freq-table-2022">
+                    <p class="loading">加载中...</p>
+                </div>
+            </div>
+            <div class="table-section table-half">
+                <h2 class="section-title">📝 2026高频词 TOP30</h2>
+                <div class="freq-table-container" id="freq-table-2026">
+                    <p class="loading">加载中...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 项目说明 -->
+        <div class="project-info">
+            <h2 class="section-title">📋 项目说明</h2>
+            <div class="info-content">
+                <div class="info-item">
+                    <h3>🎯 五大行业关键词</h3>
+                    <table class="keyword-table">
+                        <tr>
+                            <th>行业</th>
+                            <th>关键词</th>
+                        </tr>
+                        <tr>
+                            <td>🍽️ 餐饮</td>
+                            <td>世界杯、夜宵、聚餐、美食、外卖、啤酒、烧烤</td>
+                        </tr>
+                        <tr>
+                            <td>✈️ 旅游</td>
+                            <td>世界杯、酒店、旅游、出行、机票、签证、观赛</td>
+                        </tr>
+                        <tr>
+                            <td>🎰 体彩</td>
+                            <td>世界杯、彩票、足彩、竞彩、投注、赔率</td>
+                        </tr>
+                        <tr>
+                            <td>🛒 零售</td>
+                            <td>世界杯、周边、球迷、商品、纪念品、吉祥物</td>
+                        </tr>
+                        <tr>
+                            <td>💰 财经</td>
+                            <td>世界杯、概念股、体育经济、赞助商、体育产业</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="info-item">
+                    <h3>📅 数据时间区间</h3>
+                    <ul class="time-list">
+                        <li><strong>2022卡塔尔世界杯:</strong> 2022-11-20 ~ 2022-12-18</li>
+                        <li><strong>2026美加墨世界杯:</strong> 2026-06-11 ~ 2026-07-09</li>
+                    </ul>
+                    <h3 style="margin-top: 20px;">📡 数据来源</h3>
+                    <ul class="source-list">
+                        <li>360资讯、搜狗新闻、百度资讯、百家号</li>
+                        <li>央视网、新浪网、东方财富、中国新闻网</li>
+                    </ul>
+                    <div class="data-note">
+                        <strong>📌 数据采集说明：</strong>两届世界杯数据采集均以赛事期间为核心时段。2022卡塔尔世界杯数据覆盖赛前预热至决赛后（2022-11-01~2022-12-30），完整记录赛事全程舆情；2026美加墨世界杯数据采集截止于2026年7月9日，涵盖赛前预热及小组赛至淘汰赛初期阶段。鉴于2026赛事尚未完结，本次分析以阶段性数据为基础，后续可根据赛事进度补充完善。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <p>🏆 世界杯多行业舆情热度分析平台 | 计算机课程期末大作业</p>
+        <p>技术栈: Python + Flask + ECharts + pandas + jieba + wordcloud</p>
+    </footer>
+
+    <!-- JavaScript脚本 -->
+    <script>
+
+    // ============================================
+    // 页面初始化
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('页面加载完成，开始获取数据...');
+
+        // 加载所有数据
+        loadOverview();
+        loadIndustryStats();
+        loadComparisonData();
+        loadWordFreq();
+    });
+
+    // ============================================
+    // API 1: 概览数据
+    // ============================================
+    function loadOverview() {
+        fetch('/api/overview')
+            .then(response => response.json())
+            .then(data => {
+                console.log('概览数据:', data);
+
+                // 更新统计卡片
+                document.getElementById('total-count').textContent = data.total_count || 0;
+                document.getElementById('count-2022').textContent = data.count_2022 || 0;
+                document.getElementById('count-2026').textContent = data.count_2026 || 0;
+                document.getElementById('industry-count').textContent = data.industry_count || 0;
+
+                // 绘制饼图
+                if (data.industry_stats) {
+                    drawPieChart(data.industry_stats);
+                }
+            })
+            .catch(error => {
+                console.error('加载概览数据失败:', error);
+            });
+    }
+
+    // ============================================
+    // API 2: 行业统计数据
+    // ============================================
+    function loadIndustryStats() {
+        fetch('/api/industry_stats')
+            .then(response => response.json())
+            .then(data => {
+                console.log('行业统计数据:', data);
+            })
+            .catch(error => {
+                console.error('加载行业统计失败:', error);
+            });
+    }
+
+    // ============================================
+    // API 3: 两届对比数据
+    // ============================================
+    function loadComparisonData() {
+        fetch('/api/industry_comparison')
+            .then(response => response.json())
+            .then(data => {
+                console.log('对比数据:', data);
+                drawBarChart(data);
+                drawComparisonChart(data);
+            })
+            .catch(error => {
+                console.error('加载对比数据失败:', error);
+            });
+    }
+
+
+    // ============================================
+    // API 5: 词频数据
+    // ============================================
+    function loadWordFreq() {
+        // 加载2022词频
+        fetch('/api/word_freq/2022')
+            .then(response => response.json())
+            .then(data => {
+                renderFreqTable('freq-table-2022', data);
+            })
+            .catch(error => {
+                document.getElementById('freq-table-2022').innerHTML = '<p class="error">加载失败</p>';
+            });
+
+        // 加载2026词频
+        fetch('/api/word_freq/2026')
+            .then(response => response.json())
+            .then(data => {
+                renderFreqTable('freq-table-2026', data);
+            })
+            .catch(error => {
+                document.getElementById('freq-table-2026').innerHTML = '<p class="error">加载失败</p>';
+            });
+    }
+
+    // ============================================
+    // 图表绘制函数
+    // ============================================
+
+    // 绘制饼图 - 行业分布
+    // [优化] 统一五大行业固定配色，标注字体放大(15px)，投影清晰
+    function drawPieChart(industryStats) {
+        var chart = echarts.init(document.getElementById('pie-chart'));
+
+        // 五大行业固定配色（使用ECharts默认专业配色方案）
+        // 财经-蓝、餐饮-绿、零售-橙黄、旅游-红、体彩-青
+        var industryColors = {
+            '财经': '#5470c6',    // 蓝色
+            '餐饮': '#91cc75',    // 绿色
+            '零售': '#fac858',    // 橙黄色
+            '旅游': '#ee6666',    // 红色
+            '体彩': '#73c0de'     // 青色
+        };
+
+        var data = [];
+        for (var industry in industryStats) {
+            data.push({
+                name: industry,
+                value: industryStats[industry],
+                itemStyle: {
+                    color: industryColors[industry] || '#999999'
+                }
+            });
+        }
+
+        var option = {
+            title: {
+                text: '行业新闻分布',
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 18,  // 标题字体放大
+                    fontWeight: 'bold'
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c}条 ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                top: 'middle',
+                itemGap: 15,  // 图例间距增大
+                textStyle: {
+                    fontSize: 15  // 图例字体放大(投影清晰)
+                }
+            },
+            series: [
+                {
+                    name: '行业分布',
+                    type: 'pie',
+                    radius: ['35%', '65%'],
+                    center: ['60%', '55%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 8,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}\n{d}%',
+                        fontSize: 15  // [优化] 标注字体放大，远距离答辩投影看得更清晰
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 17,
+                            fontWeight: 'bold'
+                        },
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    },
+                    data: data
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 绘制柱状图 - 两届对比
+    // [优化] 横轴文字倾斜15度，避免五个行业标签拥挤重叠
+    function drawBarChart(data) {
+        var chart = echarts.init(document.getElementById('bar-chart'));
+
+        var industries = [];
+        var data2022 = [];
+        var data2026 = [];
+
+        data.forEach(function(item) {
+            industries.push(item.industry);
+            data2022.push(item.count_2022);
+            data2026.push(item.count_2026);
+        });
+
+        var option = {
+            title: {
+                text: '各行业新闻数量对比',
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 18,
+                    fontWeight: 'bold'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['2022卡塔尔', '2026美加墨'],
+                top: 40,
+                textStyle: {
+                    fontSize: 14,
+                    fontWeight: 'bold'  // [优化] 图例文字加粗
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',  // [优化] 增加底部边距，给倾斜文字留出空间
+                top: '25%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: industries,
+                axisLabel: {
+                    fontSize: 14,  // 字体略微放大
+                    rotate: 15,  // [优化] 横轴文字倾斜15度，避免五个行业标签拥挤重叠
+                    interval: 0  // 强制显示所有标签
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '新闻数量（条）',
+                nameTextStyle: {
+                    fontSize: 13
+                }
+            },
+            series: [
+                {
+                    name: '2022卡塔尔',
+                    type: 'bar',
+                    data: data2022,
+                    itemStyle: {
+                        color: '#5470c6',
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    barWidth: '35%'
+                },
+                {
+                    name: '2026美加墨',
+                    type: 'bar',
+                    data: data2026,
+                    itemStyle: {
+                        color: '#91cc75',
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    barWidth: '35%'
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // ============================================
+    // 绘制子弹图 - 两届世界杯行业热度占比对比
+    // ============================================
+    // 设计说明：
+    // - 每行一条水平轨道，底层宽条(2022卡塔尔蓝色) + 上层窄条(2026美加墨绿色)
+    // - 两层条形在同一水平线上，实现嵌套叠加效果
+    // - 5行：财经、餐饮、零售、旅游、体彩
+    // ============================================
+    function drawComparisonChart(data) {
+        var chart = echarts.init(document.getElementById('comparison-chart'));
+
+        // Y轴行业顺序（从上至下）
+        var industries = ['股市', '餐饮', '零售', '旅游', '体彩'];
+
+        // 提取数据
+        var data2022 = [];
+        var data2026 = [];
+
+        industries.forEach(function(industry) {
+            var item = data.find(function(d) {
+                return d.industry === industry;
+            });
+            if (item) {
+                data2022.push(item.percent_2022 || 0);
+                data2026.push(item.percent_2026 || 0);
+            } else {
+                data2022.push(0);
+                data2026.push(0);
+            }
+        });
+
+        var option = {
+            // 标题
+            title: {
+                text: '各行业热度占比对比',
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 16,
+                    fontWeight: 'bold'
+                }
+            },
+            // 提示框
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: function(params) {
+                    var industry = params[0].name;
+                    var val2022 = data2022[industries.indexOf(industry)];
+                    var val2026 = data2026[industries.indexOf(industry)];
+                    return industry + '<br/>' +
+                           '2022卡塔尔: ' + val2022 + '%<br/>' +
+                           '2026美加墨: ' + val2026 + '%';
+                }
+            },
+            // 图例
+            legend: {
+                data: ['2022卡塔尔', '2026美加墨'],
+                top: 40,
+                left: 'center',
+                itemWidth: 20,
+                itemHeight: 12,
+                textStyle: { fontSize: 13 }
+            },
+            // 布局 - 留出合适的行间距
+            grid: {
+                left: '12%',
+                right: '10%',
+                bottom: '10%',
+                top: '25%',
+                containLabel: true
+            },
+            // X轴 - 百分比刻度
+            xAxis: {
+                type: 'value',
+                name: '占比（%）',
+                nameTextStyle: { fontSize: 13 },
+                axisLabel: {
+                    formatter: '{value}%',
+                    fontSize: 12
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: { type: 'dashed', color: '#e8e8e8' }
+                },
+                axisLine: { lineStyle: { color: '#ccc' } },
+                axisTick: { show: false },
+                max: 30
+            },
+            // Y轴 - 五个行业
+            yAxis: {
+                type: 'category',
+                data: industries,
+                axisLabel: {
+                    fontSize: 13,
+                    fontWeight: 'bold',
+                    margin: 15
+                },
+                axisLine: { lineStyle: { color: '#ccc' } },
+                axisTick: { show: false },
+                splitLine: { show: false }
+            },
+            // 系列配置 - 真正的子弹图效果
+            series: [
+                // 2022卡塔尔（蓝色）
+                {
+                    name: '2022卡塔尔',
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#5470c6',
+                        borderRadius: [0, 6, 6, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}%',
+                        fontSize: 11,
+                        color: '#5470c6',
+                        fontWeight: 'bold'
+                    },
+                    barGap: '10%',
+                    data: data2022
+                },
+                // 2026美加墨（绿色）
+                {
+                    name: '2026美加墨',
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#91cc75',
+                        borderRadius: [0, 6, 6, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}%',
+                        fontSize: 11,
+                        color: '#91cc75',
+                        fontWeight: 'bold'
+                    },
+                    data: data2026
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+    // 切换词云显示
+    function switchWordcloud(year, btnElement) {
+        // 更新标签状态
+        var buttons = document.querySelectorAll('.wordcloud-tabs .tab-btn');
+        buttons.forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        // 更新图片
+        var img = document.getElementById('wordcloud-image');
+        if (img) {
+            if (year === '2022') {
+                img.src = '/static/images/wordcloud_2022.png';
+            } else if (year === '2026') {
+                img.src = '/static/images/wordcloud_2026.png';
+            } else {
+                img.src = '/static/images/wordcloud_all.png';
+            }
+        }
+    }
+
+    // 渲染词频表格 - 完整渲染TOP30数据，添加热度等级分层
+    // [优化] 热度等级分为三档：极热(≥200) / 高热(100-199) / 中等(<100)，让热度分层更加细化
+    function renderFreqTable(containerId, data) {
+        if (!data || data.length === 0) {
+            document.getElementById(containerId).innerHTML = '<p class="no-data">暂无数据</p>';
+            return;
+        }
+
+        var html = '<table class="freq-table">';
+        html += '<thead><tr><th>排名</th><th>关键词</th><th>出现次数</th><th>热度等级</th></tr></thead>';
+        html += '<tbody>';
+
+        data.forEach(function(item, index) {
+            var rank = item.rank || (index + 1);
+            var word = item.word || '';
+            var count = item['count'] || 0;
+            var level = '';
+
+            // [优化] 热度等级分为三档，不再清一色"极热"
+            // 极热：200次以上（顶级高频词，如"世界杯"）
+            // 高热：100-199次（行业核心词，如"外卖"、"消费"）
+            // 中等：100次以下（相关词汇，热度适中）
+            if (count >= 200) {
+                level = '🔥🔥 极热';  // 200次以上为极热
+            } else if (count >= 100) {
+                level = '🔥 高热';   // 100-199次为高热
+            } else {
+                level = '⭐ 中等';   // 100次以下为中等
+            }
+
+            html += '<tr>';
+            html += '<td class="rank">' + rank + '</td>';
+            html += '<td class="word">' + word + '</td>';
+            html += '<td class="count">' + count + '</td>';
+            html += '<td class="level">' + level + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById(containerId).innerHTML = html;
+    }
+    </script>
+</body>
+</html>

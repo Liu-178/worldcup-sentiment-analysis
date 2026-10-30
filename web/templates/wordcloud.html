@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词云展示 - 世界杯赛事舆情大数据分析平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🏆 世界杯赛事舆情大数据分析平台
+        </div>
+        <div class="navbar-menu">
+            <a href="/" class="nav-link">首页概览</a>
+            <a href="/compare" class="nav-link">对比分析</a>
+            <a href="/wordcloud" class="nav-link active">词云展示</a>
+            <a href="/chat" class="nav-link">AI助手</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1>☁️ 词云分析展示</h1>
+            <p class="subtitle">高频关键词可视化 | 两届世界杯舆情热点词频对比分析</p>
+        </div>
+
+        <!-- 词云图片展示 -->
+        <div class="wordcloud-section">
+            <h2 class="section-title">🖼️ 词云可视化图片</h2>
+            <div class="wordcloud-tabs">
+                <button class="tab-btn btn-primary active" onclick="switchWordcloud('2022', this)">2022卡塔尔</button>
+                <button class="tab-btn btn-primary" onclick="switchWordcloud('2026', this)">2026美加墨</button>
+                <button class="tab-btn btn-primary" onclick="switchWordcloud('all', this)">总览对比</button>
+            </div>
+            <div class="wordcloud-container" id="wordcloud-container">
+                <img id="wordcloud-image" src="{{ url_for('static', filename='images/wordcloud_2022.png') }}" alt="词云图">
+            </div>
+            <p class="wordcloud-tip" id="wordcloud-tip">当前显示: 2022卡塔尔世界杯词云</p>
+        </div>
+
+        <!-- 词频对比柱状图 -->
+        <div class="chart-section">
+            <h2 class="section-title">📊 高频词TOP20对比</h2>
+            <div class="chart-tabs">
+                <button class="tab-btn btn-primary active" onclick="switchFreqChart('2022', this)">2022卡塔尔</button>
+                <button class="tab-btn btn-primary" onclick="switchFreqChart('2026', this)">2026美加墨</button>
+            </div>
+            <div class="chart-container">
+                <div id="freq-bar-chart" class="chart"></div>
+            </div>
+        </div>
+
+        <!-- 词频表格双列 -->
+        <div class="charts-row">
+            <!-- 2022词频表格 -->
+            <div class="table-section table-half">
+                <h2 class="section-title">📝 2022卡塔尔世界杯 高频词TOP30</h2>
+                <div class="freq-table-container" id="freq-table-2022">
+                    <p class="loading">数据加载中...</p>
+                </div>
+            </div>
+            <!-- 2026词频表格 -->
+            <div class="table-section table-half">
+                <h2 class="section-title">📝 2026美加墨世界杯 高频词TOP30</h2>
+                <div class="freq-table-container" id="freq-table-2026">
+                    <p class="loading">数据加载中...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 词频雷达图对比 -->
+        <div class="chart-section">
+            <h2 class="section-title">🎯 核心关键词热度雷达图</h2>
+            <div class="chart-container">
+                <div id="radar-chart" class="chart"></div>
+            </div>
+        </div>
+
+        <!-- 行业关键词分析 -->
+        <div class="chart-section">
+            <h2 class="section-title">🔍 行业关键词分布</h2>
+            <div class="chart-tabs">
+                <button class="tab-btn btn-primary active" onclick="switchIndustryChart('餐饮', this)">餐饮</button>
+                <button class="tab-btn btn-primary" onclick="switchIndustryChart('旅游', this)">旅游</button>
+                <button class="tab-btn btn-primary" onclick="switchIndustryChart('体彩', this)">体彩</button>
+                <button class="tab-btn btn-primary" onclick="switchIndustryChart('零售', this)">零售</button>
+                <button class="tab-btn btn-primary" onclick="switchIndustryChart('股市', this)">股市</button>
+            </div>
+            <div class="chart-container">
+                <div id="industry-word-chart" class="chart"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <p>🏆 世界杯多行业舆情热度分析平台 | 计算机课程期末大作业</p>
+        <p>技术栈: Python + Flask + ECharts + pandas + jieba + wordcloud</p>
+    </footer>
+
+    <!-- JavaScript脚本 -->
+    <script>
+    // 全局变量
+    var freqData2022 = [];
+    var freqData2026 = [];
+    var currentFreqYear = '2022';
+
+    // 页面初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('词云页面加载完成...');
+        loadWordFreqData();
+        // 默认加载餐饮行业关键词
+        switchIndustryChart('餐饮');
+    });
+
+    // 加载词频数据
+    function loadWordFreqData() {
+        // 加载2022词频
+        fetch('/api/word_freq/2022')
+            .then(response => response.json())
+            .then(data => {
+                if (data && !data.error && data.length > 0) {
+                    freqData2022 = data;
+                    renderFreqTable('freq-table-2022', data);
+                    drawFreqBarChart(data, '2022卡塔尔世界杯高频词TOP20');
+                    drawRadarChart();
+                } else {
+                    document.getElementById('freq-table-2022').innerHTML = '<div class="no-data">暂无2022词频数据</div>';
+                }
+            })
+            .catch(error => {
+                console.error('加载2022词频失败:', error);
+                document.getElementById('freq-table-2022').innerHTML = '<div class="error">数据加载失败</div>';
+            });
+
+        // 加载2026词频
+        fetch('/api/word_freq/2026')
+            .then(response => response.json())
+            .then(data => {
+                if (data && !data.error && data.length > 0) {
+                    freqData2026 = data;
+                    renderFreqTable('freq-table-2026', data);
+                } else {
+                    document.getElementById('freq-table-2026').innerHTML = '<div class="no-data">暂无2026词频数据</div>';
+                }
+            })
+            .catch(error => {
+                console.error('加载2026词频失败:', error);
+                document.getElementById('freq-table-2026').innerHTML = '<div class="error">数据加载失败</div>';
+            });
+    }
+
+    // 切换词云图片
+    function switchWordcloud(year, btnElement) {
+        // 更新标签状态
+        var buttons = document.querySelectorAll('.wordcloud-tabs .tab-btn');
+        buttons.forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        // 更新图片
+        var tip = document.getElementById('wordcloud-tip');
+        var container = document.getElementById('wordcloud-container');
+
+        if (year === '2022') {
+            container.innerHTML = '<img id="wordcloud-image" src="/static/images/wordcloud_2022.png" alt="词云图">';
+            tip.textContent = '当前显示: 2022卡塔尔世界杯词云';
+        } else if (year === '2026') {
+            container.innerHTML = '<img id="wordcloud-image" src="/static/images/wordcloud_2026.png" alt="词云图">';
+            tip.textContent = '当前显示: 2026美加墨世界杯词云';
+        } else {
+            container.innerHTML = '<img id="wordcloud-image" src="/static/images/wordcloud_all.png" alt="词云图">';
+            tip.textContent = '当前显示: 全部数据总览词云';
+        }
+    }
+
+    // 切换词频图表
+    function switchFreqChart(year, btnElement) {
+        currentFreqYear = year;
+
+        // 更新标签状态（仅更新前两个按钮）
+        var buttons = document.querySelectorAll('.chart-section:nth-of-type(2) .chart-tabs .tab-btn');
+        buttons.forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        // 绘制图表
+        if (year === '2022' && freqData2022.length > 0) {
+            drawFreqBarChart(freqData2022, '2022卡塔尔世界杯高频词TOP20');
+        } else if (year === '2026' && freqData2026.length > 0) {
+            drawFreqBarChart(freqData2026, '2026美加墨世界杯高频词TOP20');
+        } else {
+            // 无数据时显示提示
+            document.getElementById('freq-bar-chart').innerHTML = '<div class="no-data">暂无该年份词频数据</div>';
+        }
+    }
+
+    // 绘制词频柱状图
+    // [优化] 优化tooltip悬浮弹窗样式，提高可读性
+    function drawFreqBarChart(data, title) {
+        if (!data || data.length === 0) {
+            document.getElementById('freq-bar-chart').innerHTML = '<div class="no-data">暂无词频数据</div>';
+            return;
+        }
+
+        var chart = echarts.init(document.getElementById('freq-bar-chart'));
+
+        var words = [];
+        var counts = [];
+
+        data.slice(0, 20).forEach(function(item) {
+            words.push(item.word);
+            counts.push(item['count']);
+        });
+
+        // 反转使最高频词在最上面
+        words = words.reverse();
+        counts = counts.reverse();
+
+        var option = {
+            title: {
+                text: title,
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 17,
+                    fontWeight: 'bold'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow',
+                    shadowStyle: {
+                        color: 'rgba(84, 112, 198, 0.1)'  // [优化] 悬浮阴影颜色更柔和
+                    }
+                },
+                backgroundColor: 'rgba(255, 255, 255, 0.98)',  // [优化] 高亮背景，更不透明
+                borderColor: '#5470c6',
+                borderWidth: 2,
+                padding: [12, 18],
+                textStyle: {
+                    fontSize: 15,
+                    color: '#333'
+                },
+                formatter: function(params) {
+                    var word = params[0].name;
+                    var count = params[0].value;
+                    var yearLabel = currentFreqYear === '2022' ? '2022卡塔尔世界杯' : '2026美加墨世界杯';
+                    return '<div style="font-size:16px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;">' + word + '</div>' +
+                           '<div style="display:flex;align-items:center;margin:4px 0;">' +
+                           '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + (currentFreqYear === '2022' ? '#5470c6' : '#91cc75') + ';margin-right:8px;"></span>' +
+                           '<span style="color:#666;">出现次数：</span>' +
+                           '<strong style="font-size:18px;color:#1a1a2e;margin-left:5px;">' + count + '</strong>' +
+                           '<span style="color:#888;margin-left:3px;">次</span></div>' +
+                           '<div style="font-size:12px;color:#999;margin-top:6px;border-top:1px dashed #eee;padding-top:6px;">📊 数据来源：' + yearLabel + '新闻标题</div>';
+                }
+            },
+            grid: {
+                left: '8%',
+                right: '10%',
+                bottom: '3%',
+                top: '18%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                name: '出现次数',
+                nameTextStyle: {
+                    fontSize: 13
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: words,
+                axisLabel: {
+                    fontSize: 12,
+                    interval: 0,
+                    margin: 10
+                }
+            },
+            series: [
+                {
+                    type: 'bar',
+                    data: counts,
+                    barCategoryGap: '40%',
+                    itemStyle: {
+                        color: currentFreqYear === '2022' ? '#5470c6' : '#91cc75',
+                        borderRadius: [0, 8, 8, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        fontSize: 12,
+                        fontWeight: 'bold'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            color: currentFreqYear === '2022' ? '#3a5a9c' : '#6ba848',
+                            shadowBlur: 15,
+                            shadowColor: 'rgba(0, 0, 0, 0.25)'
+                        }
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 绘制雷达图
+    // [优化] 修正维度：删除重复维度（彩票、体彩只保留体彩），删除宽泛的「中国」，替换成「品牌赞助」
+    // [优化] 两层多边形透明度拉开差距，绿色、蓝色轮廓分界更加明晰
+    function drawRadarChart() {
+        var chart = echarts.init(document.getElementById('radar-chart'));
+
+        // 从API获取雷达图结构化数据
+        fetch('/api/radar_data')
+            .then(response => response.json())
+            .then(radarData => {
+                if (radarData && radarData.indicator && radarData.indicator.length > 0) {
+                    // 使用后端提供的雷达图数据
+                    // [优化] 维度已修正：球迷、消费、观赛、啤酒、球衣、体彩、品牌赞助
+                    var indicators = radarData.indicator;
+                    var data2022 = radarData.data_2022;
+                    var data2026 = radarData.data_2026;
+
+                    var coreWords = indicators.map(function(item) {
+                        return item.name;
+                    });
+
+                    var maxValue = indicators[0].max;
+
+                    var option = {
+                        title: {
+                            text: '核心关键词热度雷达对比',
+                            subtext: '维度贴合五大行业：餐饮(消费/啤酒)、旅游(观赛)、体彩(体彩)、零售(球衣/品牌赞助)、股市(资本市场)',
+                            left: 'center',
+                            top: 10,
+                            textStyle: {
+                                fontSize: 17,
+                                fontWeight: 'bold'
+                            },
+                            subtextStyle: {
+                                fontSize: 12,
+                                color: '#888'
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: function(params) {
+                                return params.name + '<br/>' +
+                                       params.seriesName + ': ' + params.value;
+                            }
+                        },
+                        legend: {
+                            data: ['2022卡塔尔', '2026美加墨'],
+                            top: 55,
+                            left: 'center',
+                            textStyle: {
+                                fontSize: 14,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        radar: {
+                            indicator: indicators,
+                            center: ['50%', '60%'],
+                            radius: '70%',
+                            axisName: {
+                                fontSize: 14,
+                                color: '#333',
+                                fontWeight: 'bold'
+                            },
+                            splitArea: {
+                                areaStyle: {
+                                    color: ['rgba(250, 250, 250, 0.3)', 'rgba(200, 200, 200, 0.3)']
+                                }
+                            },
+                            splitLine: {
+                                lineStyle: {
+                                    color: 'rgba(150, 150, 150, 0.5)'
+                                }
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(150, 150, 150, 0.5)'
+                                }
+                            }
+                        },
+                        series: [
+                            {
+                                type: 'radar',
+                                data: [
+                                    {
+                                        value: data2022,
+                                        name: '2022卡塔尔',
+                                        itemStyle: {
+                                            color: '#5470c6'
+                                        },
+                                        areaStyle: {
+                                            color: 'rgba(84, 112, 198, 0.15)'  // [优化] 蓝色透明度降低(15%)，拉开差距
+                                        },
+                                        lineStyle: {
+                                            width: 3,
+                                            opacity: 1,
+                                            color: '#5470c6'  // 蓝色轮廓明晰
+                                        },
+                                        symbol: 'circle',
+                                        symbolSize: 8
+                                    },
+                                    {
+                                        value: data2026,
+                                        name: '2026美加墨',
+                                        itemStyle: {
+                                            color: '#91cc75'
+                                        },
+                                        areaStyle: {
+                                            color: 'rgba(145, 204, 117, 0.45)'  // [优化] 绿色透明度适中(45%)，与蓝色分界明晰
+                                        },
+                                        lineStyle: {
+                                            width: 4,
+                                            opacity: 1,
+                                            color: '#91cc75'  // 绿色轮廓明晰
+                                        },
+                                        symbol: 'circle',
+                                        symbolSize: 10
+                                    }
+                                ]
+                            }
+                        ]
+                    };
+
+                    chart.setOption(option);
+                    window.addEventListener('resize', function() {
+                        chart.resize();
+                    });
+                } else {
+                    // 后端无数据时，使用前端计算的数据
+                    drawRadarChartFromWordFreq();
+                }
+            })
+            .catch(error => {
+                console.error('获取雷达图数据失败:', error);
+                // API失败时，使用前端计算的数据
+                drawRadarChartFromWordFreq();
+            });
+    }
+
+    // 从词频数据绘制雷达图（备用方案）
+    // [优化] 维度修正：球迷、消费、观赛、啤酒、球衣、体彩、品牌赞助
+    // [优化] 两层多边形透明度拉开差距，分界明晰
+    function drawRadarChartFromWordFreq() {
+        var chart = echarts.init(document.getElementById('radar-chart'));
+
+        // 核心维度（去掉空的品牌赞助）
+        var coreWords = ['球迷', '消费', '观赛', '啤酒', '球衣', '体彩'];
+
+        // 获取两届数据
+        var data2022 = coreWords.map(function(word) {
+            var item = freqData2022.find(function(d) {
+                return d.word === word;
+            });
+            return item ? item['count'] : 0;
+        });
+
+        var data2026 = coreWords.map(function(word) {
+            var item = freqData2026.find(function(d) {
+                return d.word === word;
+            });
+            return item ? item['count'] : 0;
+        });
+
+        // 检查是否有有效数据
+        var hasData = data2022.some(function(v) { return v > 0; }) || data2026.some(function(v) { return v > 0; });
+
+        if (!hasData) {
+            chart.clear();
+            document.getElementById('radar-chart').innerHTML = '<div class="no-data">暂无核心关键词数据</div>';
+            return;
+        }
+
+        // 计算最大值
+        var max2022 = Math.max.apply(null, data2022);
+        var max2026 = Math.max.apply(null, data2026);
+        var maxValue = Math.max(max2022, max2026) * 1.2 || 100;
+
+        var option = {
+            title: {
+                text: '核心关键词热度雷达对比',
+                subtext: '维度贴合五大行业：餐饮(消费/啤酒)、旅游(观赛)、体彩(体彩)、零售(球衣/品牌赞助)、财经(品牌赞助)',
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 17,
+                    fontWeight: 'bold'
+                },
+                subtextStyle: {
+                    fontSize: 12,
+                    color: '#888'
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    return params.name + '<br/>' +
+                           params.seriesName + ': ' + params.value;
+                }
+            },
+            legend: {
+                data: ['2022卡塔尔', '2026美加墨'],
+                top: 55,
+                left: 'center',
+                textStyle: {
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                }
+            },
+            radar: {
+                indicator: coreWords.map(function(word) {
+                    return {
+                        name: word,
+                        max: maxValue
+                    };
+                }),
+                center: ['50%', '60%'],
+                radius: '70%',
+                axisName: {
+                    fontSize: 14,
+                    color: '#333',
+                    fontWeight: 'bold'
+                },
+                splitArea: {
+                    areaStyle: {
+                        color: ['rgba(250, 250, 250, 0.3)', 'rgba(200, 200, 200, 0.3)']
+                    }
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: 'rgba(150, 150, 150, 0.5)'
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: 'rgba(150, 150, 150, 0.5)'
+                    }
+                }
+            },
+            series: [
+                {
+                    type: 'radar',
+                    data: [
+                        {
+                            value: data2022,
+                            name: '2022卡塔尔',
+                            itemStyle: {
+                                color: '#5470c6'
+                            },
+                            areaStyle: {
+                                color: 'rgba(84, 112, 198, 0.15)'  // [优化] 蓝色透明度降低(15%)
+                            },
+                            lineStyle: {
+                                width: 3,
+                                opacity: 1,
+                                color: '#5470c6'  // 蓝色轮廓明晰
+                            },
+                            symbol: 'circle',
+                            symbolSize: 8
+                        },
+                        {
+                            value: data2026,
+                            name: '2026美加墨',
+                            itemStyle: {
+                                color: '#91cc75'
+                            },
+                            areaStyle: {
+                                color: 'rgba(145, 204, 117, 0.45)'  // [优化] 绿色透明度适中(45%)
+                            },
+                            lineStyle: {
+                                width: 4,
+                                opacity: 1,
+                                color: '#91cc75'  // 绿色轮廓明晰
+                            },
+                            symbol: 'circle',
+                            symbolSize: 10
+                        }
+                    ]
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 切换行业图表 - 使用真实API数据
+    // [修复] 增加btnElement参数，确保切换功能稳定
+    function switchIndustryChart(industry, btnElement) {
+        // 更新标签状态（仅更新行业按钮）
+        var buttons = document.querySelectorAll('.chart-section:last-of-type .chart-tabs .tab-btn');
+        buttons.forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        // [修复] 2025-07-11: 不要先清空innerHTML，这会破坏ECharts实例的DOM结构
+        // 直接调用API，drawIndustryWordChart会处理清理工作
+
+        // 调用真实API获取行业关键词
+        fetch('/api/industry_keywords/' + industry)
+            .then(response => response.json())
+            .then(data => {
+                console.log('行业关键词数据:', industry, data);
+
+                // 检查是否有数据
+                if (!data || data.length === 0) {
+                    document.getElementById('industry-word-chart').innerHTML = '<div class="no-data">该行业暂无舆情关键词数据</div>';
+                    return;
+                }
+
+                // 绘制真实数据图表
+                drawIndustryWordChart(industry, data);
+            })
+            .catch(error => {
+                console.error('获取行业关键词失败:', error);
+                document.getElementById('industry-word-chart').innerHTML = '<div class="error">数据加载失败</div>';
+            });
+    }
+
+    // 绘制行业词频图 - 使用真实数据
+    // [修复] 2024-07-09: 修正字段名 keyword -> word 的兼容处理，修复横轴显示undefined的bug
+    // [优化] 2024-07-10: 坐标轴刻度自适应，五个行业柱状视觉观感统一
+    function drawIndustryWordChart(industry, data) {
+        var chartContainer = document.getElementById('industry-word-chart');
+
+        // [修复] 2025-07-11: 用try-catch保护dispose，避免DOM已被修改时报错
+        try {
+            var oldChart = echarts.getInstanceByDom(chartContainer);
+            if (oldChart) {
+                oldChart.dispose();
+            }
+        } catch (e) {
+            console.log('销毁旧图表实例时出现异常，忽略继续:', e.message);
+        }
+
+        // 清空容器内容并设置高度
+        chartContainer.innerHTML = '';
+        chartContainer.style.height = '400px';
+
+        var chart = echarts.init(chartContainer);
+
+        // 提取关键词和词频（兼容 keyword 和 word 两种字段名）
+        var keywords = data.map(function(item) {
+            return item.keyword || item.word || '';
+        });
+
+        var counts = data.map(function(item) {
+            return item['count'] || 0;
+        });
+
+        // [优化] 计算最大值，实现坐标轴自适应
+        var maxCount = Math.max.apply(null, counts);
+        var yAxisMax = Math.ceil(maxCount / 50) * 50;  // 向上取整到50的倍数
+        if (yAxisMax < 50) yAxisMax = 50;  // 最小50
+
+        // 五大行业固定配色（使用ECharts默认专业配色方案）
+        // 股市-蓝、餐饮-绿、零售-橙黄、旅游-红、体彩-青
+        var industryColors = {
+            '股市': '#5470c6',    // 蓝色
+            '餐饮': '#91cc75',    // 绿色
+            '零售': '#fac858',    // 橙黄色
+            '旅游': '#ee6666',    // 红色
+            '体彩': '#73c0de'     // 青色
+        };
+
+        var option = {
+            title: {
+                text: industry + '行业关键词热度',
+                left: 'center',
+                top: 10,
+                textStyle: {
+                    fontSize: 16
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function(params) {
+                    return params[0].name + ': ' + params[0].value + ' 次';
+                }
+            },
+            // [优化] 增加底部边距，给横轴倾斜文字留出空间
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                top: '20%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: keywords,
+                axisLabel: {
+                    rotate: 45,  // [优化] 增加旋转角度，避免文字堆叠
+                    fontSize: 12,
+                    interval: 0  // [优化] 强制显示所有标签
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '出现次数',
+                nameTextStyle: {
+                    fontSize: 12
+                },
+                // [优化] 坐标轴自适应，便于横向对比
+                min: 0,
+                max: yAxisMax,
+                minInterval: 10,  // 最小间隔10
+                splitLine: {
+                    lineStyle: {
+                        type: 'dashed'
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '词频',
+                    type: 'bar',
+                    data: counts,
+                    itemStyle: {
+                        color: industryColors[industry] || '#5470c6',  // [优化] 使用行业固定配色
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        fontSize: 11
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    // 渲染词频表格
+    function renderFreqTable(containerId, data) {
+        if (!data || data.length === 0) {
+            document.getElementById(containerId).innerHTML = '<div class="no-data">暂无词频数据</div>';
+            return;
+        }
+
+        var html = '<table class="freq-table">';
+        html += '<thead><tr><th>排名</th><th>关键词</th><th>出现次数</th><th>热度等级</th></tr></thead>';
+        html += '<tbody>';
+
+        data.slice(0, 30).forEach(function(item, index) {
+            var rank = item.rank || (index + 1);
+            var word = item.word || '';
+            var count = item['count'] || 0;
+            var level = '';
+
+            // 根据次数判断热度等级
+            if (count >= 100) {
+                level = '🔥🔥🔥 极热';
+            } else if (count >= 50) {
+                level = '🔥🔥 高热';
+            } else if (count >= 20) {
+                level = '🔥 中热';
+            } else {
+                level = '⭐ 一般';
+            }
+
+            html += '<tr>';
+            html += '<td class="rank">' + rank + '</td>';
+            html += '<td class="word"><strong>' + word + '</strong></td>';
+            html += '<td class="count">' + count + '</td>';
+            html += '<td class="level">' + level + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById(containerId).innerHTML = html;
+    }
+    </script>
+
+    <style>
+    /* 词云页面特殊样式 */
+    .wordcloud-tip {
+        text-align: center;
+        color: #666;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+    .wordcloud-container img {
+        max-width: 800px;
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    .freq-table .level {
+        font-size: 12px;
+    }
+    .freq-table .rank {
+        font-weight: bold;
+        color: #e94560;
+    }
+    .freq-table .word strong {
+        color: #1a1a2e;
+    }
+    .freq-table .count {
+        color: #5470c6;
+        font-weight: bold;
+    }
+    .no-data {
+        text-align: center;
+        color: #999;
+        padding: 80px 20px;
+        font-size: 16px;
+        background: #f5f5f5;
+        border-radius: 8px;
+    }
+    .error {
+        text-align: center;
+        color: #ee6666;
+        padding: 80px 20px;
+        font-size: 16px;
+    }
+
+    /* [新增] 统一按钮样式 - 与整站风格一致 */
+    .tab-btn.btn-primary {
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 0 5px;
+    }
+    .tab-btn.btn-primary:hover {
+        background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 52, 96, 0.3);
+    }
+    .tab-btn.btn-primary.active {
+        background: linear-gradient(135deg, #e94560 0%, #c45c3e 100%);
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+    }
+    </style>
+</body>
+</html>
