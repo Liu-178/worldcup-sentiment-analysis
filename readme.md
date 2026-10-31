@@ -110,10 +110,20 @@ worldcup-sentiment-analysis/
 │   ├── static/                 # ECharts、样式、词云图片
 │   └── templates/              # 页面模板
 ├── sql/                        # 建表与去重脚本
-├── docs/screenshots/           # 界面截图
+├── docs/                       # 文档与截图
+│   ├── screenshots/            # 界面截图
+│   └── 世界杯赛事舆情大数据分析平台.pptx   # 项目汇报 PPT（17 页）
 ├── requirements.txt
 └── update_all.py               # 一键更新
 ```
+
+## 项目文档
+
+| 文档 | 说明 |
+|------|------|
+| [汇报 PPT](docs/世界杯赛事舆情大数据分析平台.pptx) | 17 页，覆盖项目背景、系统架构、数据采集、功能模块、技术亮点与未来展望 |
+
+> PPT 为 2026 年 7 月答辩时的版本，其中数据统计页记录的是当时的数据快照（1137 条）。后续补充采集后的完整数据为 1343 条，以 `data/merged_all.csv` 和上文「数据概览」为准。
 
 ## 数据说明
 
