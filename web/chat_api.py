@@ -244,6 +244,14 @@ def chat_with_api(user_message, history=[]):
         # 添加当前用户消息
         messages.append({"role": "user", "content": user_message})
 
+        # 未配置密钥时直接给出明确提示，避免发出注定失败的请求
+        if not API_KEY:
+            return (
+                "尚未配置 SiliconFlow API Key。\n\n"
+                "请复制 .env.example 为 .env，填入 SILICONFLOW_API_KEY 后重启应用。\n"
+                "未配置时，固定问答库中的常见问题仍可正常回答。"
+            )
+
         # 发送请求
         response = requests.post(
             f"{API_BASE}/chat/completions",
