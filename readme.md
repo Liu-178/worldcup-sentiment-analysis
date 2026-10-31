@@ -1,194 +1,143 @@
-# 世界杯多行业舆情热度分析项目
+# 世界杯赛事舆情大数据分析平台
 
-> 本科计算机课程期末大作业 | 2022卡塔尔 vs 2026美加墨世界杯五大行业舆情对比分析
+> 2022 卡塔尔 × 2026 美加墨 | 五大行业舆情热度对比分析
 
----
+<p align="center">
+  <img src="docs/screenshots/home.png" width="900" alt="首页概览">
+</p>
 
-## 📦 项目收到后的操作步骤
+## 项目简介
 
-### 第一步：环境准备
+从新闻网站采集 **1343 条**与两届世界杯相关的报道，经清洗、中文分词与词频统计后，量化对比**餐饮、旅游、体彩、零售、股市**五个行业的舆情热度，并通过 Flask + ECharts 构建可视化分析平台。
+
+要回答的问题是：世界杯带来的关注度，究竟落在哪些行业上？五年过去，这种分布有没有变化？
+
+## 数据概览
+
+| 指标 | 2022 卡塔尔 | 2026 美加墨 | 合计 |
+|------|------------|------------|------|
+| 新闻条数 | 453 | 890 | **1343** |
+| 行业分类 | 5 个 | 5 个 | 5 个 |
+| 数据来源 | 360 资讯、搜狗新闻、百度资讯、百家号、新浪网、央视网等 | — | — |
+
+## 核心发现
+
+| 行业 | 2022 占比 | 2026 占比 | 变化 |
+|------|----------|----------|------|
+| 餐饮 | 22.52% | **27.98%** | **+5.46 pp** |
+| 旅游 | 24.28% | 21.35% | −2.93 pp |
+| 体彩 | 22.52% | 21.69% | −0.83 pp |
+| 零售 | 17.22% | 15.96% | −1.26 pp |
+| 股市 | 13.47% | 13.03% | −0.44 pp |
+
+**餐饮是唯一占比上升的行业，且升幅显著（+5.46 个百分点），其余四个行业占比均下降。**
+
+一个可能的解释是讨论重心的迁移：2022 年卡塔尔世界杯是首次在北半球冬季举办，讨论更多集中在"看球"本身（旅游、观赛）；而 2026 年美加墨世界杯在夏季举办，与夜宵、啤酒、外卖等餐饮消费场景的绑定更紧密，反映在文本上就是「夜市」「外卖」「啤酒」「烧烤」等词的高频出现。
+
+> 需要说明的局限：数据来源于公开新闻抓取，非社交媒体原始语料，且部分记录的时间字段缺失（标为"未知时间"）。上述结论是基于占比的观察性推断，不构成因果判断。
+
+## 功能页面
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/compare.png" alt="行业热度对比分析"></td>
+<td width="50%"><img src="docs/screenshots/wordcloud.png" alt="词云分析展示"></td>
+</tr>
+<tr>
+<td align="center">行业热度对比：占比横向对比 + 两届环形图</td>
+<td align="center">词云展示：两届词云切换 + 高频词 TOP20</td>
+</tr>
+</table>
+
+平台共四个页面：
+
+- **首页概览** —— 数据总览卡片、行业分布环形图、两届热度对比柱状图
+- **对比分析** —— 消除总量差异后的占比对比，便于横向比较两届结构变化
+- **词云展示** —— 两届词云切换与高频词 TOP20 排行
+- **AI 助手** —— 接入大模型接口，支持基于项目数据的问答
+
+## 技术栈
+
+| 环节 | 技术 |
+|------|------|
+| 数据采集 | requests + BeautifulSoup |
+| 数据处理 | pandas |
+| 中文分词 | jieba |
+| 词频与词云 | wordcloud |
+| Web 框架 | Flask |
+| 数据可视化 | ECharts |
+| 数据存储 | SQL Server（可选） |
+
+## 快速开始
 
 ```bash
-# 1. 确保已安装 Python 3.8+ 和 pip
-python --version
-
-# 2. 进入项目目录
-cd worldcup-sentiment-analysis
-
-# 3. 安装依赖
+# 1. 安装依赖
 pip install -r requirements.txt
 
-# 4. 安装 SQL Server ODBC 驱动（如需使用数据库功能）
-# Windows 通常已自带，如没有请从微软官网下载 ODBC Driver 17 for SQL Server
-```
+# 2. 配置环境变量（AI 助手功能需要）
+cp .env.example .env
+# 编辑 .env，填入 SILICONFLOW_API_KEY
 
-### 第二步：运行 Web 应用（查看数据）
-
-```bash
-# 进入 web 目录
+# 3. 启动 Web 应用
 cd web
-
-# 启动 Flask 应用
 python app.py
 ```
 
-访问 **http://127.0.0.1:5000** 查看数据可视化结果。
+浏览器访问 <http://127.0.0.1:5000> 即可查看分析结果。数据已随仓库提供，**无需先跑爬虫**。
 
-### 第三步：（可选）更新数据
-
-```bash
-# 回到项目根目录
-cd ..
-
-# 运行一键更新脚本（爬虫 + 数据转换 + SQL导入）
-python update_all.py
-```
-
-### 第四步：（可选）导入 SQL Server 数据库
+如需更新数据：
 
 ```bash
-# 1. 先在 SQL Server 中创建数据库
-# 打开 SQL Server Management Studio，执行：
-CREATE DATABASE worldcup_db;
-
-# 2. 运行导入脚本
-python analysis/import_to_sqlserver.py
+python update_all.py    # 爬虫 → 数据转换 → 入库
 ```
 
----
-
-## 📂 项目目录结构
+## 项目结构
 
 ```
 worldcup-sentiment-analysis/
-├── spider/                     # 爬虫代码目录
-│   └── world_cup_spider.py     # 百度新闻爬虫
-│
-├── data/                       # 数据文件目录
-│   ├── world_cup_news.csv      # 原始爬取数据（累积）
-│   ├── merged_all.csv          # 转换后数据（供系统使用）
-│   ├── industry_stats.csv      # 行业统计结果
-│   ├── industry_comparison.csv # 两届对比数据
-│   ├── timeline_stats.csv      # 时间序列统计
-│   ├── daily_total.csv         # 每日热度汇总
-│   └── word_freq_*.csv         # 词频数据
-│
-├── analysis/                   # 数据分析目录
-│   ├── data_converter.py       # 数据转换模块
-│   ├── industry_analysis.py    # 行业热度分析
-│   ├── wordcloud_generator.py  # 词云生成模块
+├── spider/                     # 爬虫
+│   └── world_cup_spider.py     # 新闻采集
+├── analysis/                   # 数据分析
+│   ├── data_converter.py       # 数据转换
+│   ├── industry_analysis.py    # 行业热度统计
 │   ├── word_freq_simple.py     # 词频统计
-│   └── import_to_sqlserver.py  # SQL Server导入
-│
-├── web/                        # Web应用目录
-│   ├── app.py                  # Flask主程序
-│   ├── chat_api.py             # AI对话API
-│   ├── static/                 # 静态资源
-│   │   ├── css/                # 样式文件
-│   │   ├── js/                 # ECharts脚本
-│   │   └── images/             # 词云图片
-│   └── templates/              # HTML模板
-│       ├── index.html          # 首页
-│       ├── compare.html        # 对比分析页
-│       └── wordcloud.html      # 词云展示页
-│
-├── sql/                        # SQL脚本目录
-│   ├── create_table.sql        # 建表语句
-│   └── clean_duplicates.sql    # 清理重复数据
-│
-├── requirements.txt            # 依赖配置
-├── update_all.py               # 一键更新脚本
-└── readme.md                   # 项目说明
+│   ├── wordcloud_generator.py  # 词云生成
+│   └── import_to_sqlserver.py  # 数据入库
+├── data/                       # 数据文件（已清洗，可直接使用）
+├── web/                        # Flask 应用
+│   ├── app.py                  # 主程序与数据接口
+│   ├── chat_api.py             # AI 问答接口
+│   ├── static/                 # ECharts、样式、词云图片
+│   └── templates/              # 页面模板
+├── sql/                        # 建表与去重脚本
+├── docs/screenshots/           # 界面截图
+├── requirements.txt
+└── update_all.py               # 一键更新
 ```
+
+## 数据说明
+
+`data/` 目录下的核心文件：
+
+| 文件 | 说明 |
+|------|------|
+| `merged_all.csv` | 清洗合并后的全量数据（1343 条），Web 应用的数据源 |
+| `world_cup_news.csv` | 爬虫原始采集数据 |
+| `industry_stats.csv` | 行业热度统计结果 |
+| `industry_comparison.csv` | 两届对比数据 |
+| `word_freq_*.csv` | 分词后的词频统计 |
+| `web/static/images/wordcloud_*.png` | 生成的词云图片 |
+
+CSV 采用 UTF-8 with BOM 编码，字段包含标题、链接、来源、发布时间、摘要、行业分类、年份、赛事名称。
+
+## 常见问题
+
+**Q：不装 SQL Server 能跑吗？**
+能。Web 应用直接读取 CSV 文件，SQL Server 仅用于数据持久化的可选环节。
+
+**Q：词频统计结果里有省略号怎么办？**
+重新运行 `python analysis/word_freq_simple.py` 生成完整词频表。
 
 ---
 
-## 🚀 快速开始
-
-### 1. 环境准备
-
-```bash
-# 创建虚拟环境（可选）
-python -m venv venv
-
-# 激活虚拟环境
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# 安装依赖
-pip install -r requirements.txt
-```
-
-### 2. 启动Web应用
-
-```bash
-cd web
-python app.py
-```
-
-访问 http://127.0.0.1:5000 查看可视化结果。
-
----
-
-## 📊 当前数据统计（截至2026/07/09）
-
-### 总量统计
-- 总数据量: **1593 条**
-- 2022卡塔尔: **533 条**
-- 2026美加墨: **1060 条**
-
-### 各行业数据
-| 行业 | 2022数量 | 2022占比 | 2026数量 | 2026占比 |
-|------|----------|----------|----------|----------|
-| 餐饮 | 136 | 25.52% | 283 | 26.7% |
-| 旅游 | 102 | 19.14% | 236 | 22.26% |
-| 体彩 | 113 | 21.2% | 218 | 20.57% |
-| 零售 | 102 | 19.14% | 199 | 18.77% |
-| 财经 | 80 | 15.01% | 124 | 11.7% |
-
----
-
-## 🔧 技术栈
-
-| 类别 | 技术 |
-|:----:|:----:|
-| 爬虫 | requests + BeautifulSoup |
-| 数据处理 | pandas |
-| 中文分词 | jieba |
-| 词云生成 | wordcloud |
-| Web框架 | Flask |
-| 可视化 | ECharts |
-| 数据库 | SQL Server（可选）|
-
----
-
-## 💡 常见问题
-
-### Q: 如何更新数据？
-```bash
-python update_all.py
-```
-脚本会自动执行：爬虫 → 数据转换 → SQL导入
-
-### Q: 数据存在哪里？
-- **CSV文件**: `data/` 目录下
-- **SQL Server**: 本地实例的 `worldcup_db` 数据库（连接串见 `analysis/import_to_sqlserver.py`，按自己的实例名修改）
-
-### Q: 如何只查看数据不运行爬虫？
-直接运行 `python web/app.py` 启动Web应用即可查看现有数据。
-
-### Q: 词频统计有省略号怎么办？
-重新运行词频统计：
-```bash
-python analysis/word_freq_simple.py
-```
-
----
-
-## 作者信息
-
-- 课程名称：计算机本科课程期末大作业
-- 项目主题：世界杯多行业舆情热度分析
-- 开发时间：2026年7月
+课程：计算机本科课程期末大作业 | 开发时间：2026 年 7 月
